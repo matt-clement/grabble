@@ -5,3 +5,8 @@ Grabble is a small personal project of mine to create an implementation of a gra
 Please note that this is not the most performant code at the moment, and everything is stored in memory (which is why I named the main class `Cache`)
 
 I'll write up more detailed instructions after a little bit more development.
+
+#Todo list:
+-Tests
+-Docs
+-Cleanup
