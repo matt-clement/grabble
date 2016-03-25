@@ -1,5 +1,8 @@
+Gemfile.lock
+
 # Vim temp files
 [._]*.s[a-w][a-z]
 [._]s[a-w][a-z]
 
-Gemfile.lock
+# Rspec
+spec/persist.txt
