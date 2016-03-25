@@ -7,6 +7,6 @@ Please note that this is not the most performant code at the moment, and everyth
 I'll write up more detailed instructions after a little bit more development.
 
 #Todo list:
--Tests
--Docs
--Cleanup
+- Tests
+- Docs
+- Cleanup

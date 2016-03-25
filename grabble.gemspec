@@ -8,4 +8,6 @@ Gem::Specification.new do |s|
   s.email       = 'clement.matthewp@gmail.com'
   s.files       = ["lib/grabble.rb", "lib/grabble/cache.rb", "lib/grabble/vertex.rb", "lib/grabble/edge.rb"]
   s.license       = 'MIT'
+  s.add_development_dependency 'rspec', '~> 3.0'
+  s.add_development_dependency 'pry', '~> 0.10'
 end
