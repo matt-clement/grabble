@@ -32,26 +32,25 @@ module Grabble
       @options = nil
     end
 
-    def partition_key(data)
-      partition_key = options[:partitions].map{ |f|
-        f.call(data)
-      }.join('')
-    end
-
-    def partition(vertex)
+    def partition_key(vertex)
       data = if vertex.is_a? Grabble::Vertex
                vertex.data
              else
                vertex
              end
-      vertices[partition_key(data)]
+      options[:partitions].map{ |f|
+        f.call(data)
+      }.join('')
     end
 
-    def random(partition_key, max_depth)
+    def partition(vertex)
+      vertices[partition_key(vertex)]
+    end
+
+    def random(key, max_depth)
       selected_vertices = []
-      return nil if max_depth < 1
-      vertex = vertices[partition_key].sample
-      return nil unless vertex
+      vertex = vertices[key].sample
+      return vertex if max_depth < 1
       
       adjacent_vertices(vertex).each{ |v|
         selected_vertices << v
