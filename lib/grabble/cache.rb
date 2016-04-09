@@ -47,16 +47,22 @@ module Grabble
       vertices[partition_key(vertex)]
     end
 
-    def random(key, max_depth)
+    def random(key, opts = {})
+      max_depth = opts[:max_depth] || key.to_i
+      max_items = opts[:max_items]
       selected_vertices = []
       vertex = vertices[key].sample
       return vertex if max_depth < 1
       
       adjacent_vertices(vertex).each{ |v|
         selected_vertices << v
-        selected_vertices.concat(Array(random(partition_key(v), max_depth - 1)))
+        selected_vertices.concat(Array(random(partition_key(v), {max_depth: max_depth - 1})))
       }
-      selected_vertices.uniq
+      if max_items
+        selected_vertices.uniq.sample(max_items)
+      else
+        selected_vertices.uniq
+      end
     end
 
     def relevant_edges(vertex)
