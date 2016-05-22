@@ -9,7 +9,7 @@ module Grabble
     end
 
     def vertices
-      @vertices ||= Hash.new {|hash, key| p "Creating new partition: #{key} | #{key.class}"; hash[key] = Array.new}
+      @vertices ||= Hash.new {|hash, key| hash[key] = Array.new}
     end
 
     def total_vertices
@@ -166,7 +166,6 @@ module Grabble
         edge = ee
       else
         edge = Edge.new(v1, v2)
-        puts "Created edge: #{v1.data} | #{v2.data}"
         edges << edge
       end
       edge
