@@ -21,7 +21,6 @@ module Grabble
     end
 
     def total_edges
-      count = 0
       edge_set = Set.new
       edges.each_value { |ea| edge_set += ea }
       edge_set.count
@@ -43,9 +42,7 @@ module Grabble
              else
                vertex
              end
-      options[:partitions].map { |f|
-        f.call(data)
-      }.join('')
+      options[:partitions].map { |f| f.call(data) }.join('')
     end
 
     def partition(vertex)
