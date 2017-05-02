@@ -10,7 +10,7 @@ RSpec.describe Grabble::Cache do
     it 'creates new edges if needed' do
       test_cache = Grabble::Cache.new
       test_cache.add_vertex("test")
-      expect { test_cache.add_vertex("lest") }.to change{test_cache.edges.size}.by 1
+      expect { test_cache.add_vertex("lest") }.to change{test_cache.total_edges}.by 1
     end
 
   end

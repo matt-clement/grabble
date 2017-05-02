@@ -1,3 +1,4 @@
+require 'set'
 module Grabble
   class Cache
 
@@ -19,7 +20,14 @@ module Grabble
     end
 
     def edges
-      @edges ||= []
+      @edges ||= Hash.new{|hash, key| hash[key] = Array.new}
+    end
+
+    def total_edges
+      count = 0
+      edge_set = Set.new
+      edges.each_value{|ea| edge_set += ea}
+      edge_set.count
     end
 
     def clear
@@ -69,7 +77,7 @@ module Grabble
 
     def relevant_edges(vertex)
       vertex = find_vertex(vertex) unless vertex.is_a? Grabble::Vertex
-      edges.select{|e| e.vertices.include? vertex}
+      edges[vertex].select{|e| e.vertices.include? vertex}
     end
 
     def adjacent_vertices(vertex)
@@ -90,8 +98,7 @@ module Grabble
 
     def find_vertex(obj)
       if obj.is_a? Grabble::Vertex
-        partition(obj).include? obj
-        obj
+        obj if partition(obj).include? obj
       else
         vertices[partition_key(obj)].find{|x| x.data == obj}
       end
@@ -120,11 +127,16 @@ module Grabble
       if ev
         vertex = ev
       else
-        data = filter_vertex_data(obj)
-        return nil unless data
-        part = partition_key(data)
-        vertex = Vertex.new(data)
-        vertices[part] << vertex
+        if obj.is_a? Grabble::Vertex
+          vertex = obj
+          partition(vertex) << vertex
+        else
+          data = filter_vertex_data(obj)
+          return nil unless data
+          part = partition_key(data)
+          vertex = Vertex.new(data)
+          vertices[part] << vertex
+        end
         create_edges(vertex)
         sort_vertices(part)
       end
@@ -159,16 +171,23 @@ module Grabble
     def find_or_create_edge(a, b)
       v1 = find_or_create_vertex(a)
       v2 = find_or_create_vertex(b)
-      ee = edges.
-        select{|e| e.vertices.include? v1}.
-        find{|e| e.vertices.include? v2}
-      if ee
-        edge = ee
+      e1 = edges[v1].find{|e| e.vertices.include? v2}
+      e2 = edges[v2].find{|e| e.vertices.include? v1}
+
+      if e1 && e2
+        return e1
+      elsif e1
+        e2 = e1
+        return e1
+      elsif e2
+        e1 = e2
+        return e1
       else
         edge = Edge.new(v1, v2)
-        edges << edge
+        edges[v1] << edge
+        edges[v2] << edge
+        return edge
       end
-      edge
     end
   end
 end
