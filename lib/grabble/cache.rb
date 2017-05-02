@@ -1,3 +1,4 @@
+require 'set'
 module Grabble
   class Cache
 
