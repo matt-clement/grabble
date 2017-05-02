@@ -13,9 +13,7 @@ module Grabble
     end
 
     def total_vertices
-      count = 0
-      vertices.each_value { |va| count += va.size }
-      count
+      vertices.values.reduce(0, :+)
     end
 
     def edges
