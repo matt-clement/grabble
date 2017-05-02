@@ -21,9 +21,7 @@ module Grabble
     end
 
     def total_edges
-      edge_set = Set.new
-      edges.each_value { |ea| edge_set += ea }
-      edge_set.count
+      edges.values.uniq.count
     end
 
     def clear
@@ -42,7 +40,7 @@ module Grabble
              else
                vertex
              end
-      options[:partitions].map { |f| f.call(data) }.join('')
+      options[:partitions].map { |f| f.call(data) }.join
     end
 
     def partition(vertex)
@@ -99,7 +97,9 @@ module Grabble
     end
 
     def sort_vertices(part)
-      vertices[part].sort! { |v1, v2| v1.data <=> v2.data }
+      # TODO: Since we call this method every time we insert, it might be nice
+      # to use a sorted data structure that takes care of this automatically.
+      vertices[part].sort_by! { |v| v.data }
     end
 
     def filter_vertex_data(obj)
@@ -136,17 +136,8 @@ module Grabble
       vertex
     end
 
-    def add_edge(v1, v2)
-      find_or_create_edge(v1, v2)
-    end
-
     def likeness(str1, str2)
-      chars = str1.chars
-      counter = 0
-      str2.chars.each.with_index do |ch, index|
-        counter += 1 if chars[index] == ch
-      end
-      counter
+      str1.chars.zip(str2.chars).count { |a, b| a == b}
     end
 
     def create_edges(vertex)
@@ -157,7 +148,7 @@ module Grabble
           likeness(str1, str2) == vertex.data.length - 1
       end
       similar.each do |v|
-        add_edge(v, vertex)
+        find_or_create_edge(v, vertex)
       end
     end
 
