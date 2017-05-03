@@ -99,7 +99,7 @@ module Grabble
     def sort_vertices(part)
       # TODO: Since we call this method every time we insert, it might be nice
       # to use a sorted data structure that takes care of this automatically.
-      vertices[part].sort_by! { |v| v.data }
+      vertices[part].sort_by!(&:data)
     end
 
     def filter_vertex_data(obj)
@@ -137,7 +137,7 @@ module Grabble
     end
 
     def likeness(str1, str2)
-      str1.chars.zip(str2.chars).count { |a, b| a == b}
+      str1.chars.zip(str2.chars).count { |a, b| a == b }
     end
 
     def create_edges(vertex)
