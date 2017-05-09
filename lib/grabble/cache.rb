@@ -1,33 +1,27 @@
 require 'set'
 module Grabble
   class Cache
-
     def options
       @options ||= {
-        data_filters: [lambda {|x| x.match(/^[a-zA-Z]+$/)}],
-        partitions: [lambda {|x| x.length}]
+        data_filters: [->(x) { x.match(/^[a-zA-Z]+$/) }],
+        partitions: [->(x) { x.length }]
       }
     end
 
     def vertices
-      @vertices ||= Hash.new {|hash, key| hash[key] = Array.new}
+      @vertices ||= Hash.new { |hash, key| hash[key] = [] }
     end
 
     def total_vertices
-      count = 0
-      vertices.each_value{|va| count += va.size}
-      count
+      vertices.values.reduce(0, :+)
     end
 
     def edges
-      @edges ||= Hash.new{|hash, key| hash[key] = Array.new}
+      @edges ||= Hash.new { |hash, key| hash[key] = Set.new }
     end
 
     def total_edges
-      count = 0
-      edge_set = Set.new
-      edges.each_value{|ea| edge_set += ea}
-      edge_set.count
+      edges.values.uniq.count
     end
 
     def clear
@@ -46,9 +40,7 @@ module Grabble
              else
                vertex
              end
-      options[:partitions].map{ |f|
-        f.call(data)
-      }.join('')
+      options[:partitions].map { |f| f.call(data) }.join
     end
 
     def partition(vertex)
@@ -62,8 +54,8 @@ module Grabble
       loop do
         new_vertices = selected_vertices.dup
         init_count = selected_vertices.count
-        selected_vertices.map{ |vert|
-          adjacent_vertices(vertex).each {|adj| new_vertices.add(adj)}
+        selected_vertices.map { |vert|
+          adjacent_vertices(vertex).each { |adj| new_vertices.add(adj) }
         }
         selected_vertices = new_vertices
         break if init_count == new_vertices.count
@@ -77,12 +69,12 @@ module Grabble
 
     def relevant_edges(vertex)
       vertex = find_vertex(vertex) unless vertex.is_a? Grabble::Vertex
-      edges[vertex].select{|e| e.vertices.include? vertex}
+      edges[vertex].select { |e| e.vertices.include? vertex }
     end
 
     def adjacent_vertices(vertex)
       vertex = find_vertex(vertex) unless vertex.is_a? Grabble::Vertex
-      relevant_edges(vertex).map{|e| e.other(vertex)}
+      relevant_edges(vertex).map { |e| e.other(vertex) }
     end
 
     def add_vertex(obj)
@@ -92,7 +84,7 @@ module Grabble
     def delete_vertex(obj)
       ev = find_vertex(obj)
       return nil unless ev
-      edges.reject!{|e| e.vertices.include?(ev)}
+      edges.reject! { |e| e.vertices.include?(ev) }
       partition(ev).delete(ev)
     end
 
@@ -100,27 +92,28 @@ module Grabble
       if obj.is_a? Grabble::Vertex
         obj if partition(obj).include? obj
       else
-        vertices[partition_key(obj)].find{|x| x.data == obj}
+        vertices[partition_key(obj)].find { |x| x.data == obj }
       end
     end
 
     def sort_vertices(part)
-      vertices[part].sort!{|v1, v2| v1.data <=> v2.data}
+      # TODO: Since we call this method every time we insert, it might be nice
+      # to use a sorted data structure that takes care of this automatically.
+      vertices[part].sort_by!(&:data)
     end
 
     def filter_vertex_data(obj)
       data = obj.downcase
       filter_values = if options[:data_filters]
-        options[:data_filters].map do |f|
-          f.call(data)
-        end 
-      else
-        [true]
-      end
+                        options[:data_filters].map do |f|
+                          f.call(data)
+                        end
+                      else
+                        [true]
+                      end
 
-      filter_values.reduce(true){|acc, val| acc && val} ? data : nil
+      filter_values.reduce(true) { |acc, val| acc && val } ? data : nil
     end
-
 
     def find_or_create_vertex(obj)
       ev = find_vertex(obj)
@@ -143,17 +136,8 @@ module Grabble
       vertex
     end
 
-    def add_edge(v1, v2)
-      find_or_create_edge(v1, v2)
-    end
-
     def likeness(str1, str2)
-      chars = str1.chars
-      counter = 0
-      str2.chars.each.with_index do |ch, index|
-        counter+=1 if chars[index] == ch
-      end
-      counter
+      str1.chars.zip(str2.chars).count { |a, b| a == b }
     end
 
     def create_edges(vertex)
@@ -164,30 +148,24 @@ module Grabble
           likeness(str1, str2) == vertex.data.length - 1
       end
       similar.each do |v|
-        add_edge(v, vertex)
+        find_or_create_edge(v, vertex)
       end
+    end
+
+    def create_edge(v1, v2)
+      edge = Edge.new(v1, v2)
+      edges[v1] << edge
+      edges[v2] << edge
+      edge
     end
 
     def find_or_create_edge(a, b)
       v1 = find_or_create_vertex(a)
       v2 = find_or_create_vertex(b)
-      e1 = edges[v1].find{|e| e.vertices.include? v2}
-      e2 = edges[v2].find{|e| e.vertices.include? v1}
+      e1 = edges[v1].find { |e| e.vertices.include? v2 }
+      e2 = edges[v2].find { |e| e.vertices.include? v1 }
 
-      if e1 && e2
-        return e1
-      elsif e1
-        e2 = e1
-        return e1
-      elsif e2
-        e1 = e2
-        return e1
-      else
-        edge = Edge.new(v1, v2)
-        edges[v1] << edge
-        edges[v2] << edge
-        return edge
-      end
+      e1 && e2 ? e1 : create_edge(v1, v2)
     end
   end
 end

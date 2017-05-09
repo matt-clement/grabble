@@ -1,5 +1,4 @@
-module Grabble
+module Grabble; end
 
-end
-
-Dir[File.dirname(File.expand_path(__FILE__)) + "/grabble/*.rb"].each {|f| require f}
+lib_directory = File.dirname(File.expand_path(__FILE__))
+Dir[File.join(lib_directory, 'grabble', '*.rb')].each { |f| require f }

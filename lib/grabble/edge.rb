@@ -6,8 +6,12 @@ module Grabble
     end
 
     def other(vertex)
-      return nil unless vertices.find_index(vertex)
-      vertices.reject{|v| v == vertex}.first
+      case vertex
+      when @vertex1
+        @vertex2
+      when @vertex2
+        @vertex1
+      end
     end
 
     def vertices
