@@ -17,7 +17,7 @@ module Grabble
     end
 
     def edges
-      @edges ||= Hash.new { |hash, key| hash[key] = [] }
+      @edges ||= Hash.new { |hash, key| hash[key] = Set.new }
     end
 
     def total_edges
@@ -152,26 +152,20 @@ module Grabble
       end
     end
 
+    def create_edge(v1, v2)
+      edge = Edge.new(v1, v2)
+      edges[v1] << edge
+      edges[v2] << edge
+      edge
+    end
+
     def find_or_create_edge(a, b)
       v1 = find_or_create_vertex(a)
       v2 = find_or_create_vertex(b)
       e1 = edges[v1].find { |e| e.vertices.include? v2 }
       e2 = edges[v2].find { |e| e.vertices.include? v1 }
 
-      if e1 && e2
-        return e1
-      elsif e1
-        e2 = e1
-        return e1
-      elsif e2
-        e1 = e2
-        return e1
-      else
-        edge = Edge.new(v1, v2)
-        edges[v1] << edge
-        edges[v2] << edge
-        return edge
-      end
+      e1 && e2 ? e1 : create_edge(v1, v2)
     end
   end
 end
